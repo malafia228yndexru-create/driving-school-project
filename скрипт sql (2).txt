@@ -1,0 +1,161 @@
+CREATE TABLE "UP07".Role (
+    ID SERIAL PRIMARY KEY,
+    Name VARCHAR(30) NOT NULL,
+    Permissions VARCHAR(50)[] NOT NULL
+);
+
+CREATE TABLE "UP07".Status (
+    ID SERIAL PRIMARY KEY,
+    Name VARCHAR(50) NOT NULL,
+    Description VARCHAR(300) NOT NULL
+);
+
+CREATE TABLE  "UP07".Category (
+    ID SERIAL PRIMARY KEY,
+    Code VARCHAR(5) NOT NULL,
+    Name VARCHAR(50) NOT NULL,
+    Description VARCHAR(300)
+);
+
+CREATE TABLE  "UP07"."Authorization" (
+    ID SERIAL PRIMARY KEY,
+    Login VARCHAR(30) NOT NULL,
+    Password VARCHAR(100) NOT NULL
+);
+
+CREATE TABLE  "UP07"."User" (
+    ID SERIAL PRIMARY KEY,
+    Role_ID INTEGER NOT NULL REFERENCES Role(ID),
+    Auth_ID INTEGER NOT NULL REFERENCES "Authorization"(ID),
+    Name VARCHAR(40) NOT NULL,
+    Surname VARCHAR(40) NOT NULL,
+    Otchestvo VARCHAR(40),
+    Phone_Number VARCHAR(11),
+    Email VARCHAR(30)
+);
+
+-- Таблица Учащихся
+CREATE TABLE  "UP07".Student (
+    ID SERIAL PRIMARY KEY,
+    Name VARCHAR(40) NOT NULL,
+    Surname VARCHAR(40) NOT NULL,
+    Otchestvo VARCHAR(40),
+    Date_of_Birth DATE NOT NULL,
+    Passport VARCHAR(10) NOT NULL,
+    Phone_Number VARCHAR(11),
+    Email VARCHAR(30)
+);
+
+-- Таблица Инструкторов (связана с Пользователем)
+CREATE TABLE  "UP07".Instructor (
+    ID SERIAL PRIMARY KEY,
+    User_ID INTEGER NOT NULL REFERENCES "User"(ID),
+    Experience INTEGER NOT NULL,
+    Qualification VARCHAR(100) NOT NULL
+);
+
+-- Таблица Учебных групп (связана с Категорией)
+CREATE TABLE  "UP07"."Group" (
+    ID SERIAL PRIMARY KEY,
+    Number VARCHAR(20) NOT NULL,
+    Category_ID INTEGER NOT NULL REFERENCES Category(ID),
+    Start_Date DATE NOT NULL,
+    End_Date DATE,
+    Status VARCHAR(20) NOT NULL
+);
+
+-- Промежуточная таблица Зачисления (связь М:М между Учащимся и Группой)
+CREATE TABLE  "UP07".Enrollment (
+    ID SERIAL PRIMARY KEY,
+    Student_ID INTEGER NOT NULL REFERENCES Student(ID),
+    Group_ID INTEGER NOT NULL REFERENCES "Group"(ID),
+    Enrollment_Date DATE NOT NULL
+);
+
+-- Таблица Транспортных средств
+CREATE TABLE  "UP07".Vehicle (
+    ID SERIAL PRIMARY KEY,
+    Brand VARCHAR(30) NOT NULL,
+    Model VARCHAR(30) NOT NULL,
+    Plate_Number VARCHAR(10) NOT NULL,
+    Year INTEGER NOT NULL,
+    Category_ID INTEGER NOT NULL REFERENCES Category(ID),
+    Condition VARCHAR(30) NOT NULL
+);
+
+-- Таблица Занятий
+CREATE TABLE  "UP07".Lesson (
+    ID SERIAL PRIMARY KEY,
+    Group_ID INTEGER NOT NULL REFERENCES "Group"(ID),
+    Instructor_ID INTEGER NOT NULL REFERENCES Instructor(ID),
+    Vehicle_ID INTEGER REFERENCES Vehicle(ID),
+    Type VARCHAR(20) NOT NULL,
+    Date DATE NOT NULL,
+    Time TIME NOT NULL,
+    Room VARCHAR(20)
+);
+
+-- Таблица Экзаменов
+CREATE TABLE  "UP07".Exam (
+    ID SERIAL PRIMARY KEY,
+    Student_ID INTEGER NOT NULL REFERENCES Student(ID),
+    Group_ID INTEGER NOT NULL REFERENCES "Group"(ID),
+    Type VARCHAR(20) NOT NULL,
+    Date DATE NOT NULL,
+    Result VARCHAR(20) NOT NULL
+);
+
+-- Таблица Оплат
+CREATE TABLE  "UP07".Payment (
+    ID SERIAL PRIMARY KEY,
+    Student_ID INTEGER NOT NULL REFERENCES Student(ID),
+    Amount NUMERIC(10,2) NOT NULL,
+    Date DATE NOT NULL,
+    Purpose VARCHAR(50) NOT NULL,
+    Status VARCHAR(20) NOT NULL
+);
+
+-- ЗАПОЛНЕНИЕ ДАННЫМИ (Примеры)
+INSERT INTO Role (Name, Permissions) VALUES 
+('Администратор', ARRAY['read', 'write', 'delete']),
+('Инструктор', ARRAY['read', 'write']);
+
+INSERT INTO Status (Name, Description) VALUES 
+('Активен', 'Обучение продолжается'),
+('Завершен', 'Обучение окончено');
+
+INSERT INTO Category (Code, Name, Description) VALUES 
+('B', 'Легковой автомобиль', 'Категория B'),
+('C', 'Грузовой автомобиль', 'Категория C');
+
+INSERT INTO "Authorization" (Login, Password) VALUES 
+('admin', 'admin123'),
+('instr1', 'pass123');
+
+INSERT INTO "User" (Role_ID, Auth_ID, Name, Surname, Phone_Number) VALUES 
+(1, 1, 'Иван', 'Иванов', '89001112233'),
+(2, 2, 'Петр', 'Петров', '89004445566');
+
+INSERT INTO Student (Name, Surname, Date_of_Birth, Passport) VALUES 
+('Алексей', 'Смирнов', '2000-05-15', '1234567890'),
+('Дмитрий', 'Кузнецов', '1999-11-20', '0987654321');
+
+INSERT INTO Instructor (User_ID, Experience, Qualification) VALUES 
+(2, 5, 'Инструктор категории B');
+
+INSERT INTO "Group" (Number, Category_ID, Start_Date, Status) VALUES 
+('ГР-01', 1, '2023-09-01', 'Активен'),
+('ГР-02', 2, '2023-10-01', 'Активен');
+
+INSERT INTO Enrollment (Student_ID, Group_ID, Enrollment_Date) VALUES 
+(1, 1, '2023-08-25'),
+(2, 2, '2023-09-20');
+
+INSERT INTO Vehicle (Brand, Model, Plate_Number, Year, Category_ID, Condition) VALUES 
+('Lada', 'Vesta', 'А123ВС77', 2021, 1, 'Исправен'),
+('KAMAZ', '4308', 'В456ЕК50', 2018, 2, 'Исправен');
+
+INSERT INTO Payment (Student_ID, Amount, Date, Purpose, Status) VALUES 
+(1, 30000.00, '2023-08-25', 'Оплата за обучение', 'Оплачено'),
+(2, 45000.00, '2023-09-20', 'Оплата за обучение', 'Оплачено');
+
